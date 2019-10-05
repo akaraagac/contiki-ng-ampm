@@ -92,6 +92,14 @@ frame-filtering-friendly on some platforms) */
 #define FRAME802154_SUPPR_SEQNO 0
 #endif /* FRAME802154_CONF_SUPPR_SEQNO */
 
+
+
+#ifdef FRAME802154_CONF_AMPM
+#define FRAME802154_AMPM FRAME802154_CONF_AMPM
+#else /* FRAME802154_CONF_AMPM */
+#define FRAME802154_AMPM 0
+#endif /* FRAME802154_CONF_AMPM */
+
 /* Macros & Defines */
 
 /** \brief These are some definitions of values used in the FCF.  See the 802.15.4 spec for details.
@@ -155,7 +163,11 @@ typedef struct {
   uint8_t frame_pending;     /**< 1 bit. True if sender has more data to send */
   uint8_t ack_required;      /**< 1 bit. Is an ack frame required? */
   uint8_t panid_compression; /**< 1 bit. Is this a compressed header? */
-  /*   uint8_t reserved; */  /**< 1 bit. Unused bit */
+#if FRAME802154_AMPM
+  uint8_t ampm_color; 	     /**< 1 bit. AM-PM Coloring bit */
+#else
+   /*   uint8_t reserved; */  /**< 1 bit. Unused bit */
+#endif
   uint8_t sequence_number_suppression; /**< 1 bit. Does the header omit sequence number?, see 802.15.4e */
   uint8_t ie_list_present;   /**< 1 bit. Does the header contain Information Elements?, see 802.15.4e */
   uint8_t dest_addr_mode;    /**< 2 bit. Destination address mode, see 802.15.4 */

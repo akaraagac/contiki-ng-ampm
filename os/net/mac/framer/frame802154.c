@@ -370,6 +370,9 @@ frame802154_create_fcf(frame802154_fcf_t *fcf, uint8_t *buf)
     ((fcf->frame_pending & 1) << 4) |
     ((fcf->ack_required & 1) << 5) |
     ((fcf->panid_compression & 1) << 6);
+#if FRAME802154_AMPM
+  buf[0] = buf[0] | ((fcf->ampm_color & 1)<< 7);
+#endif
   buf[1] = ((fcf->sequence_number_suppression & 1)) |
     ((fcf->ie_list_present & 1)) << 1 |
     ((fcf->dest_addr_mode & 3) << 2) |
@@ -476,6 +479,9 @@ frame802154_parse_fcf(uint8_t *data, frame802154_fcf_t *pfcf)
   fcf.frame_pending = (data[0] >> 4) & 1;
   fcf.ack_required = (data[0] >> 5) & 1;
   fcf.panid_compression = (data[0] >> 6) & 1;
+#if FRAME802154_AMPM
+  fcf->ampm_color = (data[0] >> 7) & 1;
+#endif
 
   fcf.sequence_number_suppression = data[1] & 1;
   fcf.ie_list_present = (data[1] >> 1) & 1;
