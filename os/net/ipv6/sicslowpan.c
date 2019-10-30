@@ -1599,6 +1599,11 @@ output(const linkaddr_t *localdest)
   /* copy over the retransmission count from uipbuf attributes */
   packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
                      uipbuf_get_attr(UIPBUF_ATTR_MAX_MAC_TRANSMISSIONS));
+                     
+#if UIP_AMPM
+  packetbuf_set_attr(PACKETBUF_ATTR_AMPM,uipbuf_get_attr(UIPBUF_ATTR_AMPM));
+#endif
+ 
 
 /* Calculate NETSTACK_FRAMER's header length, that will be added in the NETSTACK_MAC */
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
@@ -1841,6 +1846,10 @@ input(void)
      want to query us for it later. */
   last_rssi = (signed short)packetbuf_attr(PACKETBUF_ATTR_RSSI);
 
+#if UIP_AMPM
+	uipbuf_set_attr(UIPBUF_ATTR_AMPM,packetbuf_attr(PACKETBUF_ATTR_AMPM));
+#endif
+ 
 #if SICSLOWPAN_CONF_FRAG
 
   /*
@@ -2052,6 +2061,8 @@ input(void)
       packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX));
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 #endif /*  LLSEC802154_USES_AUX_HEADER */
+
+    uipbuf_set_attr(UIPBUF_ATTR_TIMESTAMP, packetbuf_attr(PACKETBUF_ATTR_TIMESTAMP));
 
     tcpip_input();
 #if SICSLOWPAN_CONF_FRAG

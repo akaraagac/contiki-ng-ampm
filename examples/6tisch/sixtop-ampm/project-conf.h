@@ -6,7 +6,7 @@
  * modification, are permitted provided that the following conditions
  * are met:
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
@@ -36,10 +36,6 @@
 #define WITH_SECURITY 0
 #endif /* WITH_SECURITY */
 
-#define TSCH_CONF_AMPM 1
-#define FRAME802154_CONF_AMPM 1
-#define LOG_CONF_LEVEL_MAC  LOG_LEVEL_INFO
-
 /*******************************************************/
 /********************* Enable TSCH *********************/
 /*******************************************************/
@@ -58,6 +54,13 @@
 /* Enable Sixtop Implementation */
 #define TSCH_CONF_WITH_SIXTOP 1
 
+#define TSCH_CONF_AMPM 1
+#define UIP_CONF_AMPM 1
+#define FRAME802154_CONF_AMPM 1
+//#define LOG_CONF_LEVEL_MAC  LOG_LEVEL_INFO
+//#define LOG_CONF_LEVEL_6LOWPAN  LOG_LEVEL_INFO
+//#define LOG_CONF_LEVEL_IPV6  LOG_LEVEL_INFO
+
 /*******************************************************/
 /******************* Configure TSCH ********************/
 /*******************************************************/
@@ -70,6 +73,10 @@
 
 /* 6TiSCH schedule length */
 #define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 11
+
+#define QUEUEBUF_CONF_NUM 4
+/*Disabling the burst mode by setting len 1*/
+#define TSCH_CONF_BURST_MAX_LEN 1
 
 #if WITH_SECURITY
 

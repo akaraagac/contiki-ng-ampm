@@ -437,5 +437,12 @@ by default, useful in case of duplicate seqno */
 #define TSCH_CONF_RX_WAIT 2200
 #endif /* TSCH_CONF_RX_WAIT */
 
+/* TSCH AMPM  */
+#ifdef TSCH_CONF_AMPM
+#define TSCH_AMPM TSCH_CONF_AMPM
+#else
+#define TSCH_AMPM 0
+#endif
+
 #endif /* __TSCH_CONF_H__ */
 /** @} */

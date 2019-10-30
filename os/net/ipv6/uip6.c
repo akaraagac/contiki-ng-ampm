@@ -94,6 +94,18 @@
 struct uip_stats uip_stat;
 #endif /* UIP_STATISTICS == 1 */
 
+#if UIP_AMPM
+	uint16_t critical_flow =  0x00AB;
+	uint16_t ampm_counter0 =  0;
+	uint16_t ampm_counter1 =  0;
+	uint8_t ampm_bit_reg1 =  0;
+    uint8_t ampm_bit_reg2 =  0;
+    char ampm_report_message[80];
+	uint8_t ampm_to_report;
+	uint8_t ampm_timestamp_reg=0;
+	long ampm_timestamp;
+	uint8_t is_udp_critical=0;
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * \name Layer 2 variables
@@ -1254,6 +1266,45 @@ uip_process(uint8_t flag)
       LOG_INFO_6ADDR(&UIP_IP_BUF->destipaddr);
       LOG_INFO_("\n");
       UIP_STAT(++uip_stat.ip.forwarded);
+
+#if UIP_AMPM
+      if(UIP_IP_BUF->flow == critical_flow)
+      {	
+		  if(uipbuf_get_attr(UIPBUF_ATTR_AMPM)){
+			  if(ampm_bit_reg1==1 && ampm_counter0>0){
+				//LOG_INFO("[AMPM] flow: %u color: %u counter: %u \n", UIP_IP_BUF->flow, 0,ampm_counter0);
+				ampm_to_report=1;
+				snprintf(ampm_report_message, sizeof(ampm_report_message), "[APP-AMPM] node: %u flow: %u color: %u counter: %u asn: %lu\n",linkaddr_node_addr.u8[LINKADDR_SIZE - 1], UIP_IP_BUF->flow, 0, ampm_counter0, ampm_timestamp);	
+				ampm_timestamp=0;
+				ampm_counter0=0;
+			  }
+			  if(ampm_bit_reg1==0 && ampm_bit_reg2==1 ){
+				  ampm_counter1++;
+				  ampm_counter0--;
+				  ampm_timestamp=uipbuf_get_attr(UIPBUF_ATTR_TIMESTAMP);
+			  }
+			  ampm_counter1++;		
+		  }
+		  else if(uipbuf_get_attr(UIPBUF_ATTR_AMPM)==0){
+			  if(ampm_bit_reg1==0 && ampm_counter1>0){
+             	//LOG_INFO("[AMPM] flow: %u color: %u counter: %u\n",  UIP_IP_BUF->flow, 1,ampm_counter1);
+             	ampm_to_report=1;
+				snprintf(ampm_report_message, sizeof(ampm_report_message), "[APP-AMPM] node: %u flow: %u color: %u counter: %u asn: %lu\n", linkaddr_node_addr.u8[LINKADDR_SIZE - 1],UIP_IP_BUF->flow, 1, ampm_counter1, ampm_timestamp);		
+				ampm_timestamp=0;
+             	ampm_counter1=0;
+			  }
+			  if(ampm_bit_reg1==1 && ampm_bit_reg2==0){
+				  ampm_counter0++;
+				  ampm_counter1--;
+				  ampm_timestamp=uipbuf_get_attr(UIPBUF_ATTR_TIMESTAMP);
+			  } 
+			  ampm_counter0++;
+		  }
+		  ampm_bit_reg2=ampm_bit_reg1;	
+		  ampm_bit_reg1=uipbuf_get_attr(UIPBUF_ATTR_AMPM);
+	  }
+	  //uipbuf_set_attr(UIPBUF_ATTR_AMPM,2);
+#endif
       goto send;
     } else {
       if((uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr)) &&
@@ -1372,6 +1423,45 @@ uip_process(uint8_t flag)
           LOG_INFO_6ADDR(&UIP_IP_BUF->destipaddr);
           LOG_INFO_("\n");
           UIP_STAT(++uip_stat.ip.forwarded);
+          
+#if UIP_AMPM
+      if(UIP_IP_BUF->flow == critical_flow)
+      {	
+		  if(uipbuf_get_attr(UIPBUF_ATTR_AMPM)){
+			  if(ampm_bit_reg1==1 && ampm_counter0>0){
+				//LOG_INFO("[AMPM] flow: %u color: %u counter: %u \n", UIP_IP_BUF->flow, 0,ampm_counter0);
+				ampm_to_report=1;
+				snprintf(ampm_report_message, sizeof(ampm_report_message), "[APP-AMPM] node: %u flow: %u color: %u counter: %u asn: %lu\n",linkaddr_node_addr.u8[LINKADDR_SIZE - 1], UIP_IP_BUF->flow, 0, ampm_counter0, ampm_timestamp);	
+				ampm_timestamp=0;
+				ampm_counter0=0;
+			  }
+			  if(ampm_bit_reg1==0 && ampm_bit_reg2==1 ){
+				  ampm_counter1++;
+				  ampm_counter0--;
+				  ampm_timestamp=uipbuf_get_attr(UIPBUF_ATTR_TIMESTAMP);
+			  }
+			  ampm_counter1++;		
+		  }
+		  else if(uipbuf_get_attr(UIPBUF_ATTR_AMPM)==0){
+			  if(ampm_bit_reg1==0 && ampm_counter1>0){
+             	//LOG_INFO("[AMPM] flow: %u color: %u counter: %u\n",  UIP_IP_BUF->flow, 1,ampm_counter1);
+             	ampm_to_report=1;
+				snprintf(ampm_report_message, sizeof(ampm_report_message), "[APP-AMPM] node: %u flow: %u color: %u counter: %u asn: %lu\n", linkaddr_node_addr.u8[LINKADDR_SIZE - 1],UIP_IP_BUF->flow, 1, ampm_counter1, ampm_timestamp);		
+				ampm_timestamp=0; 
+             	ampm_counter1=0;
+			  }
+			  if(ampm_bit_reg1==1 && ampm_bit_reg2==0){
+				  ampm_counter0++;
+				  ampm_counter1--;
+				  ampm_timestamp=uipbuf_get_attr(UIPBUF_ATTR_TIMESTAMP);
+			  } 
+			  ampm_counter0++;
+		  }
+		  ampm_bit_reg2=ampm_bit_reg1;	
+		  ampm_bit_reg1=uipbuf_get_attr(UIPBUF_ATTR_AMPM);
+	  }
+	  //uipbuf_set_attr(UIPBUF_ATTR_AMPM,2);
+#endif
 
           goto send; /* Proceed to forwarding */
         } else {
@@ -1409,6 +1499,47 @@ uip_process(uint8_t flag)
       goto bad_hdr;
     }
   }
+  
+#if UIP_AMPM
+      if(UIP_IP_BUF->flow == critical_flow)
+            {	
+		  if(uipbuf_get_attr(UIPBUF_ATTR_AMPM)){
+			  if(ampm_bit_reg1==1 && ampm_counter0>0){
+				//LOG_INFO("[AMPM] flow: %u color: %u counter: %u \n", UIP_IP_BUF->flow, 0,ampm_counter0);
+				ampm_to_report=1;
+				snprintf(ampm_report_message, sizeof(ampm_report_message), "[APP-AMPM] node: %u flow: %u color: %u counter: %u asn: %lu\n",linkaddr_node_addr.u8[LINKADDR_SIZE - 1], UIP_IP_BUF->flow, 0, ampm_counter0, ampm_timestamp);	
+				ampm_timestamp=0;
+				ampm_counter0=0;
+			  }
+			  if(ampm_bit_reg1==0 && ampm_bit_reg2==1 ){
+				  ampm_counter1++;
+				  ampm_counter0--;
+				  ampm_timestamp=uipbuf_get_attr(UIPBUF_ATTR_TIMESTAMP);
+			  }
+			  ampm_counter1++;		
+		  }
+		  else if(uipbuf_get_attr(UIPBUF_ATTR_AMPM)==0){
+			  if(ampm_bit_reg1==0 && ampm_counter1>0){
+             	//LOG_INFO("[AMPM] flow: %u color: %u counter: %u\n",  UIP_IP_BUF->flow, 1,ampm_counter1);
+             	ampm_to_report=1;
+				snprintf(ampm_report_message, sizeof(ampm_report_message), "[APP-AMPM] node: %u flow: %u color: %u counter: %u asn: %lu\n", linkaddr_node_addr.u8[LINKADDR_SIZE - 1],UIP_IP_BUF->flow, 1, ampm_counter1, ampm_timestamp);		
+				ampm_timestamp=0;
+             	ampm_counter1=0;
+			  }
+			  if(ampm_bit_reg1==1 && ampm_bit_reg2==0){
+				  ampm_counter0++;
+				  ampm_counter1--;
+				  ampm_timestamp=uipbuf_get_attr(UIPBUF_ATTR_TIMESTAMP);
+			  } 
+			  ampm_counter0++;
+		  }
+		  ampm_bit_reg2=ampm_bit_reg1;	
+		  ampm_bit_reg1=uipbuf_get_attr(UIPBUF_ATTR_AMPM);
+	  }
+	  
+	  
+#endif /* UIP_AMPM */
+
 
   /* Process upper-layer input */
   if(next_header != NULL) {
@@ -1562,7 +1693,7 @@ uip_process(uint8_t flag)
 
   udp_send:
   LOG_DBG("In udp_send\n");
-
+  
   if(uip_slen == 0) {
     goto drop;
   }
@@ -1597,6 +1728,7 @@ uip_process(uint8_t flag)
 #endif /* UIP_UDP_CHECKSUMS */
 
   UIP_STAT(++uip_stat.udp.sent);
+   
   goto ip_send_nolen;
 #endif /* UIP_UDP */
 
@@ -2314,10 +2446,25 @@ uip_process(uint8_t flag)
 #if UIP_UDP
   ip_send_nolen:
 #endif
+
   UIP_IP_BUF->flow = 0x00;
+
+#if UIP_AMPM
+  if(is_udp_critical>0)
+	{
+		UIP_IP_BUF->flow = critical_flow;
+	  //if(uipbuf_get_attr(UIPBUF_ATTR_AMPM)){ampm_counter1++;}
+	  //else {ampm_counter0++;}
+			  
+	  //LOG_INFO("[AMPM] flow: %u color: %u counter0: %u counter1: %u\n", UIP_IP_BUF->flow, uipbuf_get_attr(UIPBUF_ATTR_AMPM),ampm_counter0,ampm_counter1);
+	  uipbuf_set_attr(UIPBUF_ATTR_AMPM,critical_flow);
+	  is_udp_critical=0;
+	}
+#endif
+
   send:
   LOG_INFO("Sending packet with length %d (%d)\n", uip_len, uipbuf_get_len_field(UIP_IP_BUF));
-
+  
   UIP_STAT(++uip_stat.ip.sent);
   /* Return and let the caller do the actual transmission. */
   uip_flags = 0;

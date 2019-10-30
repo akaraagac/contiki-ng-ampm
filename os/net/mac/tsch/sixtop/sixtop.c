@@ -195,7 +195,7 @@ sixtop_output(const linkaddr_t *dest_addr, mac_callback_t callback, void *arg)
 
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest_addr);
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
-
+    
   NETSTACK_MAC.send(callback, arg);
 }
 /*---------------------------------------------------------------------------*/

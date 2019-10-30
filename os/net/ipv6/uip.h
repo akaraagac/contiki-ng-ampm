@@ -81,6 +81,14 @@
 #define UIP_TCP_BUF                           ((struct uip_tcp_hdr *)UIP_IP_PAYLOAD(uip_ext_len))
 #define UIP_TCP_PAYLOAD                            ((unsigned char *)UIP_IP_PAYLOAD(uip_ext_len) + UIP_TCPH_LEN)
 
+/* UIP AMPM  */
+#ifdef UIP_CONF_AMPM
+#define UIP_AMPM UIP_CONF_AMPM
+#else
+#define UIP_AMPM 0
+#endif
+
+
 #include "net/ipv6/uipopt.h"
 #include "net/ipv6/uipbuf.h"
 #include "net/linkaddr.h"
@@ -105,6 +113,16 @@ typedef union uip_ip6addr_t {
 typedef uip_ip6addr_t uip_ipaddr_t;
 
 /*---------------------------------------------------------------------------*/
+
+
+#if UIP_AMPM
+  extern char ampm_report_message[80];
+  extern uint8_t ampm_to_report;
+  extern uint8_t is_udp_critical;
+#endif /* UIP_AMPM */
+
+
+
 #define UIP_802154_SHORTADDR_LEN 2
 #define UIP_802154_LONGADDR_LEN  8
 
@@ -1611,7 +1629,6 @@ struct uip_ip_hdr {
   uint8_t proto, ttl;
   uip_ip6addr_t srcipaddr, destipaddr;
 };
-
 
 /*
  * IPv6 extension option headers: we are able to process

@@ -216,6 +216,9 @@ framer_802154_setup_params(packetbuf_attr_t (*get_attr)(uint8_t type),
   } else {
     params->fcf.panid_compression = 0;
   }
+#if FRAME802154_AMPM
+    params->fcf.ampm_color = get_attr(PACKETBUF_ATTR_AMPM);
+#endif  
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -277,6 +280,9 @@ parse(void)
     }
 #endif /* LLSEC802154_USES_AUX_HEADER */
 
+#if FRAME802154_AMPM
+    packetbuf_set_attr(PACKETBUF_ATTR_AMPM, frame.fcf.ampm_color);
+#endif
     LOG_INFO("In: %2X ", frame.fcf.frame_type);
     LOG_INFO_LLADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));
     LOG_INFO_(" ");

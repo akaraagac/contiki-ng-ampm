@@ -229,6 +229,10 @@ enum {
   PACKETBUF_ATTR_TSCH_TIMESLOT,
 #endif /* TSCH_WITH_LINK_SELECTOR */
 
+#if TSCH_AMPM
+  PACKETBUF_ATTR_AMPM,
+#endif
+
   /* Scope 1 attributes: used between two neighbors only. */
   PACKETBUF_ATTR_FRAME_TYPE,
 #if LLSEC802154_USES_AUX_HEADER

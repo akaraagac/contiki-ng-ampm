@@ -143,6 +143,14 @@ unsigned long sync_count;
 int32_t min_drift_seen;
 int32_t max_drift_seen;
 
+#if TSCH_AMPM
+uint16_t ampm_tsch_counter0=0;
+uint16_t ampm_tsch_counter1=0;
+uint8_t pulse_bit_reg=0;
+uint8_t ampm_tsch_timestamp_reg=0;
+long ampm_tsch_timestamp;
+#endif
+
 /* TSCH processes and protothreads */
 PT_THREAD(tsch_scan(struct pt *pt));
 PROCESS(tsch_process, "main process");
@@ -459,6 +467,7 @@ tsch_rx_process_pending()
       packetbuf_copyfrom(current_input->payload, current_input->len);
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, current_input->rssi);
       packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, current_input->channel);
+      packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, (uint16_t) (current_input->rx_asn.ls4b & 0xffff));
     }
 
     if(is_data) {
@@ -1037,6 +1046,56 @@ send_packet(mac_callback_t sent, void *ptr)
     }
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
+    
+#if TSCH_AMPM
+  if(packetbuf_attr(PACKETBUF_ATTR_AMPM)>1){
+	   uint16_t flowlabel=packetbuf_attr(PACKETBUF_ATTR_AMPM);
+	   uint8_t step_bit=(tsch_current_asn.ls4b & 0x00000800)>>11;
+	   uint8_t pulse_bit=(tsch_current_asn.ls4b & 0x00000400)>>10;      
+       
+       if(ampm_tsch_timestamp_reg==1)
+		{
+			ampm_tsch_timestamp=tsch_current_asn.ls4b & 0xFFFF;
+			ampm_tsch_timestamp_reg=0;
+		}
+       
+       
+       if(pulse_bit_reg!=pulse_bit){
+		   pulse_bit_reg=pulse_bit;
+		   if(pulse_bit==1){
+				ampm_tsch_timestamp_reg=1;
+				ampm_tsch_timestamp=0;
+			}
+	   }
+       
+       if(step_bit){
+			  if(ampm_tsch_counter0>0){
+             	LOG_INFO("[AMPM] flow: %u color: %u counter: %u\n", flowlabel, 0,ampm_tsch_counter0);
+             	ampm_to_report=1;
+				snprintf(ampm_report_message, sizeof(ampm_report_message), "[APP-AMPM] node: %u flow: %u color: %u counter: %u asn: %lu\n", linkaddr_node_addr.u8[LINKADDR_SIZE - 1], flowlabel, 0, ampm_tsch_counter0,ampm_tsch_timestamp);	
+  
+             	ampm_tsch_counter0=0;
+			  }
+			  ampm_tsch_counter1++;
+	   }
+	   else{
+			  if(ampm_tsch_counter1>0){
+             	LOG_INFO("[AMPM] flow: %u color: %u counter: %u\n", flowlabel, 1,ampm_tsch_counter1);
+             	ampm_to_report=1;
+				snprintf(ampm_report_message, sizeof(ampm_report_message), "[APP-AMPM] node: %u flow: %u color: %u counter: %u asn: %lu\n", linkaddr_node_addr.u8[LINKADDR_SIZE - 1], flowlabel, 1, ampm_tsch_counter1,ampm_tsch_timestamp);	
+  
+             	ampm_tsch_counter1 =0;
+			  }
+			  ampm_tsch_counter0++;
+	   }
+	   
+	   packetbuf_set_attr(PACKETBUF_ATTR_AMPM, step_bit ^ ampm_tsch_timestamp_reg);
+	   
+	   
+       //LOG_INFO("6top: AMPM generating [%u] \n", packetbuf_attr(PACKETBUF_ATTR_AMPM));
+   }
+#endif
+    
   } else {
     /* Broadcast packets shall be added to broadcast queue
      * The broadcast address in Contiki is linkaddr_null which is equal
@@ -1117,7 +1176,7 @@ packet_input(void)
       } else {
         mac_sequence_register_seqno();
       }
-    }
+    } 
 
     if(!duplicate) {
       LOG_INFO("received from ");
@@ -1126,6 +1185,15 @@ packet_input(void)
 #if TSCH_WITH_SIXTOP
       sixtop_input();
 #endif /* TSCH_WITH_SIXTOP */
+
+#if TSCH_AMPM
+	if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE)== FRAME802154_DATAFRAME && !linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),&tsch_broadcast_address) && !linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),&tsch_eb_address) ){
+		  //LOG_INFO("6top: AMPM received [%u] \n",   packetbuf_attr(PACKETBUF_ATTR_AMPM));
+	}
+	else{
+		 packetbuf_set_attr(PACKETBUF_ATTR_AMPM,-1);
+	}
+#endif
       NETSTACK_NETWORK.input();
     }
   }

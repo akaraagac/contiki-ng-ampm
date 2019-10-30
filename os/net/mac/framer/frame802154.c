@@ -480,7 +480,7 @@ frame802154_parse_fcf(uint8_t *data, frame802154_fcf_t *pfcf)
   fcf.ack_required = (data[0] >> 5) & 1;
   fcf.panid_compression = (data[0] >> 6) & 1;
 #if FRAME802154_AMPM
-  fcf->ampm_color = (data[0] >> 7) & 1;
+  fcf.ampm_color = (data[0] >> 7) & 1;
 #endif
 
   fcf.sequence_number_suppression = data[1] & 1;
